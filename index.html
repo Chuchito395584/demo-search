@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>SV Network AI Search (Demo)</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 24px; max-width: 900px; }
+    label { display:block; margin-top: 12px; font-weight: 600; }
+    input, textarea { width: 100%; padding: 10px; margin-top: 6px; }
+    button { margin-top: 14px; padding: 10px 14px; cursor:pointer; }
+    pre { background:#f6f6f6; padding: 12px; border-radius: 8px; overflow:auto; }
+    .row { display:flex; gap:12px; }
+    .row > div { flex:1; }
+  </style>
+</head>
+<body>
+  <h1>SV Network AI Search (Demo)</h1>
+  <p>Search in English or Spanish. The assistant responds in English.</p>
+
+  <div class="row">
+    <div>
+      <label>User ID</label>
+      <input id="user_id" value="u_test_001" />
+    </div>
+    <div>
+      <label>Image URL (optional)</label>
+      <input id="image_url" placeholder="https://..." />
+    </div>
+  </div>
+
+  <label>Text</label>
+  <textarea id="text" rows="3" placeholder="e.g., best landscaping companies in Dallas"></textarea>
+
+  <label>Voice text (optional)</label>
+  <textarea id="voice_text" rows="2" placeholder="Paste transcription here"></textarea>
+
+  <button id="send">Search</button>
+
+  <h3>Response</h3>
+  <pre id="out">{}</pre>
+
+  <script>
+    const WEBHOOK_URL = "https://svnetwork503.app.n8n.cloud/webhook/sv-ai-search";
+
+    document.getElementById("send").addEventListener("click", async () => {
+      const payload = {
+        user_id: document.getElementById("user_id").value.trim(),
+        text: document.getElementById("text").value.trim(),
+        voice_text: document.getElementById("voice_text").value.trim(),
+        image_url: document.getElementById("image_url").value.trim(),
+      };
+
+      document.getElementById("out").textContent = "Loading...";
+
+      try {
+        const res = await fetch(WEBHOOK_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+
+        const contentType = res.headers.get("content-type") || "";
+        const data = contentType.includes("application/json")
+          ? await res.json()
+          : await res.text();
+
+        document.getElementById("out").textContent =
+          typeof data === "string" ? data : JSON.stringify(data, null, 2);
+      } catch (e) {
+        document.getElementById("out").textContent = String(e);
+      }
+    });
+  </script>
+</body>
+</html>
